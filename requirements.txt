@@ -1,0 +1,6 @@
+streamlit
+psutil
+pynvml
+pandas
+altair
+streamlit-autorefresh

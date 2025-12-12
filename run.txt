@@ -1,0 +1,53 @@
+# How to run sentra locally (no Docker):
+#
+# 1. Create a venv and install requirements:
+#    python -m venv .venv
+#    .\.venv\Scripts\activate    # Windows
+#    source .venv/bin/activate   # Linux
+#    pip install -r requirements.txt
+#
+# 2. Launch dashboard:
+#    streamlit run ui/dashboard.py
+
+
+# How to build + run Docker:
+#
+# CPU-only container:
+docker run -d --restart unless-stopped --name sentra \
+  -p 8501:8501 \
+  -e STREAMLIT_SERVER_HEADLESS=true \
+  -e STREAMLIT_BROWSER_GATHERUSAGESTATS=false \
+  -e SENTRA_DOCKER_STATS=0 \
+  -e SENTRA_SAMPLE_INTERVAL=2 \
+  -e SENTRA_DB_PATH=/data/sentra.db \
+  -e SENTRA_HOST_SYS=/host_sys \
+  -v sentra_data:/data \
+  -v /sys:/host_sys:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  sentra:latest
+
+# GPU-enabled container (requires nvidia-container-toolkit):
+docker run -d --restart unless-stopped --name sentra-gpu \
+  -p 8501:8501 \
+  -e STREAMLIT_SERVER_HEADLESS=true \
+  -e STREAMLIT_BROWSER_GATHERUSAGESTATS=false \
+  -e SENTRA_DOCKER_STATS=1 \
+  -e SENTRA_SAMPLE_INTERVAL=2 \
+  -e SENTRA_DB_PATH=/data/sentra.db \
+  -e SENTRA_HOST_SYS=/host_sys \
+  -v sentra_data:/data \
+  -v /sys:/host_sys:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  --gpus all \
+  sentra:latest
+
+
+# Docker Compose (single-host):
+#   CPU-only: docker compose up sentra
+#   GPU-enabled: docker compose --compatibility up -d sentra-gpu
+
+# Then browse to http://localhost:8501
+
+# NOTE:
+# - Mounting /sys and /proc lets us read host sensors, fans, etc.
+# - The named volume "sentra_data" persists your SQLite DB between runs.

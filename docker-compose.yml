@@ -1,0 +1,52 @@
+x-sentra-env: &sentra-env
+  STREAMLIT_SERVER_HEADLESS: "true"
+  STREAMLIT_BROWSER_GATHERUSAGESTATS: "false"
+  DOCKER_HOST: "unix:///var/run/docker.sock"
+  SENTRA_DB_PATH: "/data/sentra.db"
+  SENTRA_HOST_SYS: "/host_sys"
+  SENTRA_SAMPLE_INTERVAL: "2"
+  # leave this "0" so UI loads instantly even with 100+ containers
+  SENTRA_DOCKER_STATS: "1"
+
+x-sentra-service: &sentra-service
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+  restart: unless-stopped
+  ports:
+    - "8501:8501"
+  environment:
+    <<: *sentra-env
+  volumes:
+    - sentra_data:/data
+    - /sys:/host_sys:ro
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+
+version: "3.9"
+
+services:
+  # CPU-only deployment (default)
+  sentra:
+    <<: *sentra-service
+    container_name: sentra
+
+  # Run this service instead if you want GPU stats (requires nvidia-container-toolkit).
+  # Usage:
+  #   docker compose up sentra-gpu
+  sentra-gpu:
+    <<: *sentra-service
+    container_name: sentra-gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: ["gpu"]
+    environment:
+      <<: *sentra-env
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+
+volumes:
+  sentra_data: {}

@@ -1,0 +1,63 @@
+-- SQLite schema used by sentra. Tables are created automatically on first run.
+
+CREATE TABLE IF NOT EXISTS cpu_samples (
+    ts INTEGER,
+    total_util REAL,
+    iowait REAL,
+    per_core TEXT,
+    cpu_temp REAL,
+    load1 REAL,
+    load5 REAL,
+    load15 REAL,
+    uptime_sec REAL
+);
+
+CREATE TABLE IF NOT EXISTS mem_samples (
+    ts INTEGER,
+    used_percent REAL,
+    used_bytes INTEGER,
+    total_bytes INTEGER,
+    swap_used_percent REAL
+);
+
+CREATE TABLE IF NOT EXISTS gpu_samples (
+    ts INTEGER,
+    gpu_index INTEGER,
+    temp REAL,
+    util REAL,
+    power_w REAL,
+    vram_used_mb INTEGER,
+    vram_total_mb INTEGER,
+    fan_percent REAL
+);
+
+CREATE TABLE IF NOT EXISTS disk_samples (
+    ts INTEGER,
+    device TEXT,
+    read_bps REAL,
+    write_bps REAL,
+    usage_percent REAL
+);
+
+CREATE TABLE IF NOT EXISTS net_samples (
+    ts INTEGER,
+    iface TEXT,
+    rx_bps REAL,
+    tx_bps REAL
+);
+
+CREATE TABLE IF NOT EXISTS fan_samples (
+    ts INTEGER,
+    label TEXT,
+    rpm REAL
+);
+
+CREATE INDEX IF NOT EXISTS idx_cpu_ts  ON cpu_samples(ts);
+CREATE INDEX IF NOT EXISTS idx_gpu_ts  ON gpu_samples(ts);
+CREATE INDEX IF NOT EXISTS idx_disk_ts ON disk_samples(ts);
+CREATE INDEX IF NOT EXISTS idx_net_ts  ON net_samples(ts);
+CREATE INDEX IF NOT EXISTS idx_fan_ts  ON fan_samples(ts);
+
+-- Data retention:
+-- The Streamlit sidebar buttons call datastore.purge_before(<cutoff>),
+-- which DELETEs old rows, then VACUUMs.
