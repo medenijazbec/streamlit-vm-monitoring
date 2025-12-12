@@ -49,6 +49,16 @@ import collector.logger as logger
 # ---------- Page setup ----------
 st.set_page_config(page_title="sentra dashboard", layout="wide")
 # Intentionally no st.title() to save vertical space
+st.markdown(
+    """
+    <style>
+    .stApp, .block-container, .main {
+        transition: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Height (px) of the top status block iframe.
 STATUS_BLOCK_HEIGHT = int(os.getenv("SENTRA_STATUS_BLOCK_HEIGHT", "600"))
